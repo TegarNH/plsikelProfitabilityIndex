@@ -6,6 +6,7 @@ const InvestmentCalculator = () => {
   const [discountRate, setDiscountRate] = useState('');
   const [roiResult, setRoiResult] = useState(null);
   const [piResult, setPiResult] = useState(null);
+  const [calculationSteps, setCalculationSteps] = useState(null);
 
   const formatNumber = (value) => {
     return value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -39,12 +40,20 @@ const InvestmentCalculator = () => {
 
   const calculatePI = () => {
     const discountRateDecimal = parseFloat(discountRate) / 100;
-    const presentValue = cashFlows.reduce((acc, val, index) => {
+    let presentValue = 0;
+    let steps = [];
+
+    cashFlows.forEach((val, index) => {
       const discountedValue = parseFloat(val.replace(/\./g, '')) / Math.pow(1 + discountRateDecimal, index + 1);
-      return acc + discountedValue;
-    }, 0);
+      presentValue += discountedValue;
+      steps.push(`Year ${index + 1}: ${formatNumber(val)} / (1 + ${discountRateDecimal})^${index + 1} = ${formatNumber(discountedValue.toFixed(0))}`);
+    });
+
     const pi = presentValue / parseFloat(investment.replace(/\./g, ''));
     setPiResult(pi.toFixed(2));
+    steps.push(`Total Present Value: ${formatNumber(presentValue.toFixed(0))}`);
+    steps.push(`PI: ${formatNumber(presentValue.toFixed(0))} / ${investment} = ${pi.toFixed(2)}`);
+    setCalculationSteps(steps);
   };
 
   const handleCalculate = () => {
@@ -57,7 +66,7 @@ const InvestmentCalculator = () => {
       <h1>Investment Calculator</h1>
       <div>
         <label>
-          Investment Amount:
+          Investment Amount (Rp):
           <input
             type="text"
             value={investment}
@@ -76,10 +85,10 @@ const InvestmentCalculator = () => {
         </label>
       </div>
       <div>
-        <label>Cash Flows:</label>
+        <label>Cash Flows</label>
         {cashFlows.map((flow, index) => (
           <div key={index}>
-            <label>Year {index + 1}</label>
+            <label>Year {index + 1} (Rp):</label>
             <input
               type="text"
               value={flow}
@@ -95,8 +104,18 @@ const InvestmentCalculator = () => {
       <button onClick={handleCalculate}>Calculate</button>
       {roiResult !== null && <div>ROI: {roiResult}%</div>}
       {piResult !== null && <div>PI: {piResult}</div>}
+      {calculationSteps !== null && (
+        <div>
+          <h2>Calculation Steps (PI)</h2>
+          <ul>
+            {calculationSteps.map((step, index) => (
+              <li key={index}>{step}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      <div>Created by: Muhammad Fadhil Abidin, Robby Nugraha, Tegar Naufal Hanip</div>
+      <div>Created by: Muhammad Fadhil Abidin (91123089), Robby Nugraha (91123122), Tegar Naufal Hanip (91123131)</div>
     </div>
   );
 };
